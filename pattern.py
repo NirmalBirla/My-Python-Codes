@@ -1,7 +1,8 @@
 # Single loop pattern 
 
 def myfun(n):
-    for i in range(n):
+    for i in range(1, n+1):
         print(" "*(n-i) + "* "*i)
 
-myfun(6)
+num = int(input("Enter a number  : "))
+myfun(num)

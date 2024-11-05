@@ -1,4 +1,4 @@
-stones = [7,4,8,3,1]
+stones = [3,1,100]
 while len(stones)>1:
     stones.sort()
     x = stones[-2]
@@ -14,5 +14,5 @@ while len(stones)>1:
     
 if len(stones) == 0:
     stones.append(0)
-    
-print(stones[0])
+else:
+    print(stones[0])

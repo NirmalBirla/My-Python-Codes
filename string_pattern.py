@@ -11,6 +11,6 @@ def string_pattern(str_input):
             c = ""
     return ans
 
-given_str = input("Enter a string (For Example: a2b3nirmal5$%2) : ") #'a2b3nirmal5$%2'j
+given_str = input("Enter a string (For Example: a2b3nirmal5$%2) : ") #'aabbbnirmalnirmalnirmalnirmalnirmal$%$%'
 
 print(f"The output is : {string_pattern(given_str)}")

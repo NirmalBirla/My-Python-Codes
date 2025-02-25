@@ -1,0 +1,65 @@
+import unittest
+import psycopg2
+import pandas as pd
+from utils import my_connection, get_data, get_diff, update
+
+class PostgreSQLTestCase(unittest.TestCase):
+    def setUp(self):
+        self.conn = my_connection()
+        self.cursor = self.conn.cursor()
+
+        self.cursor.execute("DROP TABLE IF EXISTS test1, test2")
+        self.cursor.execute("""
+            CREATE TABLE test1 (
+                id SERIAL PRIMARY KEY,
+                full_name VARCHAR(100),
+                postal_address VARCHAR(255)
+            )
+        """)
+        self.cursor.execute("""
+            CREATE TABLE test2 (
+                id SERIAL PRIMARY KEY,
+                full_name VARCHAR(100),
+                postal_address VARCHAR(255)
+            )
+        """)
+
+        self.cursor.execute("INSERT INTO test1 (full_name, postal_address) VALUES (%s, %s)", ("Alice", "123 Street"))
+        self.cursor.execute("INSERT INTO test1 (full_name, postal_address) VALUES (%s, %s)", ("Bob", "456 Avenue"))
+        self.cursor.execute("INSERT INTO test2 (full_name, postal_address) VALUES (%s, %s)", ("Alice", "123 Street"))
+        self.cursor.execute("INSERT INTO test2 (full_name, postal_address) VALUES (%s, %s)", ("Bob", "789 Boulevard"))
+        self.conn.commit()
+
+    def tearDown(self):
+        self.cursor.execute("DROP TABLE IF EXISTS test1, test2")
+        self.conn.commit()
+        self.cursor.close()
+        self.conn.close()
+
+    def test_get_data(self):
+        query = "SELECT * FROM test1"
+        df = get_data(query)
+        self.assertEqual(len(df), 2)
+        self.assertIn("full_name", df.columns)
+        self.assertIn("postal_address", df.columns)
+
+    def test_get_diff(self):
+        query1 = "SELECT * FROM test1"
+        query2 = "SELECT * FROM test2"
+        _, _, _, result_df = get_diff(query1, query2)
+
+        self.assertEqual(len(result_df), 2)
+        self.assertEqual(result_df.loc[1, "diff_in_address"], "456 Avenue")
+
+    def test_update(self):
+        query1 = "SELECT * FROM test1"
+        query2 = "SELECT * FROM test2"
+
+        update(query1, query2)
+
+        updated_df = get_data("SELECT * FROM test2")
+
+        self.assertEqual(updated_df.loc[1, "postal_address"], "456 Avenue")
+
+if __name__ == "__main__":
+    unittest.main()
